@@ -329,17 +329,17 @@ if tinh_lai:
             tien_list.append(gia_tri)
 
 
-        # Streamlit tự tạo biểu đồ
-        chart_data = {
-            "Số tiền (VNĐ)": tien_list
-        }
+        # Dữ liệu cho biểu đồ
+chart_data = {
+    "Tháng": thang_list,
+    "Số tiền (VNĐ)": tien_list
+}
 
-        st.line_chart(
-            chart_data,
-            x=thang_list,
-            x_label="Thời gian (tháng)",
-            y_label="Số tiền (VNĐ)"
-        )
+st.line_chart(
+    chart_data,
+    x="Tháng",
+    y="Số tiền (VNĐ)"
+)
 
 
         # =================================================
