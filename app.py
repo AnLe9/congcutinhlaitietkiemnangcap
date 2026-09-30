@@ -1,9 +1,9 @@
 import streamlit as st
-import pandas as pd
+import math
 
-# =========================
+# =========================================================
 # CẤU HÌNH TRANG
-# =========================
+# =========================================================
 
 st.set_page_config(
     page_title="Smart Savings Calculator",
@@ -12,133 +12,348 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# =========================
-# CSS
-# =========================
+# =========================================================
+# CSS - GIAO DIỆN + HIỆU ỨNG
+# =========================================================
 
 st.markdown("""
 <style>
 
-html, body, [class*="css"] {
-    font-family: Arial, sans-serif;
-}
+/* ===== NỀN ===== */
 
 .stApp {
-    background: #0e1117;
+    background:
+        radial-gradient(circle at 15% 20%, rgba(255,255,255,0.05), transparent 22%),
+        radial-gradient(circle at 85% 10%, rgba(255,255,255,0.04), transparent 20%),
+        linear-gradient(135deg, #0b0f19 0%, #111827 50%, #0b0f19 100%);
+    color: white;
 }
 
-/* Tiêu đề */
+/* ===== BỎ KHOẢNG TRỐNG TRÊN ===== */
+
+.block-container {
+    padding-top: 2rem;
+    padding-bottom: 3rem;
+}
+
+/* ===== TIÊU ĐỀ ===== */
+
 .main-title {
     text-align: center;
     font-size: 42px;
-    font-weight: 800;
-    margin-top: 10px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    margin-top: 5px;
     margin-bottom: 5px;
+    color: white;
+    text-shadow:
+        0 0 8px rgba(255,255,255,0.35),
+        0 0 25px rgba(255,255,255,0.10);
 }
 
-.subtitle {
+.sub-title {
     text-align: center;
-    color: #aab2c0;
+    color: #cbd5e1;
     font-size: 16px;
     margin-bottom: 35px;
 }
 
-/* Card kết quả */
-.result-card {
-    background: rgba(255,255,255,0.045);
-    border: 1px solid rgba(255,255,255,0.18);
-    border-radius: 18px;
-    padding: 24px;
-    min-height: 155px;
+/* ===== HIỆU ỨNG LẤP LÁNH ===== */
+
+.sparkle {
+    position: fixed;
+    width: 5px;
+    height: 5px;
+    background: white;
+    border-radius: 50%;
+    opacity: 0.65;
+    box-shadow: 0 0 12px white;
+    animation: sparkle 3s infinite ease-in-out;
+    z-index: 0;
+}
+
+.sparkle1 {
+    top: 18%;
+    left: 10%;
+    animation-delay: 0s;
+}
+
+.sparkle2 {
+    top: 32%;
+    left: 82%;
+    animation-delay: 1s;
+}
+
+.sparkle3 {
+    top: 72%;
+    left: 18%;
+    animation-delay: 2s;
+}
+
+.sparkle4 {
+    top: 82%;
+    left: 90%;
+    animation-delay: 1.5s;
+}
+
+@keyframes sparkle {
+    0%, 100% {
+        opacity: 0.15;
+        transform: scale(0.6);
+    }
+    50% {
+        opacity: 0.9;
+        transform: scale(1.5);
+    }
+}
+
+/* ===== SIDEBAR ===== */
+
+section[data-testid="stSidebar"] {
+    background:
+        linear-gradient(180deg, #151b29 0%, #0d111b 100%);
+    border-right: 1px solid rgba(255,255,255,0.08);
+}
+
+.sidebar-title {
+    font-size: 21px;
+    font-weight: 800;
+    margin-bottom: 25px;
+}
+
+/* ===== INPUT ===== */
+
+div[data-baseweb="input"] {
+    background: rgba(255,255,255,0.07);
+    border-radius: 10px;
+}
+
+div[data-baseweb="select"] > div {
+    background: rgba(255,255,255,0.07);
+    border-radius: 10px;
+}
+
+/* ===== NÚT TÍNH ===== */
+
+.stButton > button {
+    width: 100%;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.35);
+    background: linear-gradient(
+        135deg,
+        rgba(255,255,255,0.12),
+        rgba(255,255,255,0.04)
+    );
+    color: white;
+    font-weight: 800;
+    padding: 13px;
     transition: all 0.25s ease;
+}
+
+.stButton > button:hover {
+    transform: translateY(-2px);
+    box-shadow:
+        0 0 15px rgba(255,255,255,0.15),
+        0 8px 25px rgba(0,0,0,0.25);
+    border-color: rgba(255,255,255,0.7);
+}
+
+/* ===== SECTION ===== */
+
+.section-title {
+    font-size: 27px;
+    font-weight: 850;
+    margin-top: 30px;
+    margin-bottom: 18px;
+}
+
+/* ===== RESULT CARD ===== */
+
+.result-card {
+    min-height: 155px;
+    padding: 24px;
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.25);
+    background:
+        linear-gradient(
+            145deg,
+            rgba(255,255,255,0.09),
+            rgba(255,255,255,0.025)
+        );
+    box-shadow:
+        0 10px 35px rgba(0,0,0,0.20),
+        inset 0 1px 0 rgba(255,255,255,0.08);
+    animation: cardAppear 0.65s ease both;
+    transition: all 0.3s ease;
 }
 
 .result-card:hover {
     transform: translateY(-5px);
-    border-color: rgba(255,255,255,0.55);
-    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+    box-shadow:
+        0 15px 40px rgba(0,0,0,0.3),
+        0 0 25px rgba(255,255,255,0.07);
 }
 
 .result-title {
-    font-size: 16px;
-    color: #cbd1dc;
-    margin-bottom: 18px;
+    color: #cbd5e1;
+    font-size: 15px;
+    font-weight: 700;
+    margin-bottom: 15px;
 }
 
 .result-value {
-    font-size: 28px;
-    font-weight: 800;
     color: white;
+    font-size: 27px;
+    font-weight: 900;
+    letter-spacing: 0.5px;
 }
 
-/* Thông tin */
+.result-note {
+    color: #94a3b8;
+    font-size: 13px;
+    margin-top: 12px;
+}
+
+@keyframes cardAppear {
+    from {
+        opacity: 0;
+        transform: translateY(18px) scale(0.97);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+/* ===== INFO BOX ===== */
+
 .info-box {
+    border: 1px solid rgba(255,255,255,0.16);
+    border-radius: 18px;
+    padding: 22px;
     background: rgba(255,255,255,0.035);
-    border-radius: 16px;
-    border: 1px solid rgba(255,255,255,0.12);
-    padding: 20px;
-    height: 100%;
+    margin-top: 25px;
 }
 
-.info-label {
-    color: #9da6b5;
-    font-size: 14px;
-    margin-bottom: 8px;
-}
+/* ===== TABLE ===== */
 
-.info-value {
-    color: white;
-    font-size: 19px;
-    font-weight: 700;
-}
-
-/* Nút */
-.stButton > button {
+.detail-table {
     width: 100%;
-    border-radius: 12px;
-    height: 48px;
-    font-weight: 700;
-    font-size: 16px;
+    border-collapse: collapse;
+    overflow: hidden;
+    border-radius: 15px;
+    background: rgba(255,255,255,0.035);
 }
 
-/* Bảng */
-.dataframe {
-    border-radius: 12px;
-    overflow: hidden;
+.detail-table th {
+    text-align: left;
+    padding: 15px;
+    background: rgba(255,255,255,0.08);
+    color: #e2e8f0;
+    font-size: 14px;
+}
+
+.detail-table td {
+    padding: 13px 15px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    color: #cbd5e1;
+}
+
+.detail-table tr:hover {
+    background: rgba(255,255,255,0.05);
+}
+
+/* ===== EMPTY STATE ===== */
+
+.empty-box {
+    text-align: center;
+    padding: 60px 20px;
+    border: 1px dashed rgba(255,255,255,0.18);
+    border-radius: 20px;
+    color: #94a3b8;
+    background: rgba(255,255,255,0.025);
+}
+
+.empty-icon {
+    font-size: 48px;
+    margin-bottom: 10px;
+}
+
+/* ===== FOOTER ===== */
+
+.footer {
+    text-align: center;
+    color: #64748b;
+    font-size: 13px;
+    margin-top: 50px;
 }
 
 </style>
+
+<div class="sparkle sparkle1"></div>
+<div class="sparkle sparkle2"></div>
+<div class="sparkle sparkle3"></div>
+<div class="sparkle sparkle4"></div>
 """, unsafe_allow_html=True)
 
-# =========================
+
+# =========================================================
 # HÀM ĐỊNH DẠNG TIỀN
-# =========================
+# =========================================================
 
 def format_money(value):
     return f"{value:,.0f} VNĐ"
 
 
-# =========================
-# SIDEBAR
-# =========================
+# =========================================================
+# TIÊU ĐỀ
+# =========================================================
+
+st.markdown(
+    '<div class="main-title">💰 SMART SAVINGS CALCULATOR</div>',
+    unsafe_allow_html=True
+)
+
+st.markdown(
+    '<div class="sub-title">Công cụ tính toán và phân tích tiền gửi tiết kiệm</div>',
+    unsafe_allow_html=True
+)
+
+
+# =========================================================
+# SIDEBAR - THÔNG TIN ĐẦU VÀO
+# =========================================================
 
 with st.sidebar:
 
-    st.markdown("## ⚙️ Thông tin khoản gửi")
+    st.markdown(
+        '<div class="sidebar-title">⚙️ Thông tin khoản gửi</div>',
+        unsafe_allow_html=True
+    )
 
-    amount_text = st.text_input(
+    principal = st.number_input(
         "Số tiền gửi (VNĐ)",
-        placeholder="Ví dụ: 100000000"
+        min_value=0,
+        value=0,
+        step=1_000_000,
+        format="%d"
     )
 
-    months_text = st.text_input(
+    months = st.number_input(
         "Kỳ hạn (tháng)",
-        placeholder="Ví dụ: 12"
+        min_value=1,
+        max_value=120,
+        value=12,
+        step=1
     )
 
-    rate_text = st.text_input(
+    annual_rate = st.number_input(
         "Lãi suất (%/năm)",
-        placeholder="Ví dụ: 5"
+        min_value=0.0,
+        max_value=100.0,
+        value=0.0,
+        step=0.01,
+        format="%.2f"
     )
 
     interest_type = st.selectbox(
@@ -149,324 +364,311 @@ with st.sidebar:
         ]
     )
 
-    receive_type = st.selectbox(
+    payout_type = st.selectbox(
         "Hình thức nhận lãi",
         [
-            "Lĩnh lãi cuối kỳ",
-            "Lĩnh lãi theo tháng"
+            "Lãnh lãi cuối kỳ",
+            "Lãnh lãi theo tháng"
         ]
     )
 
-    calculate = st.button(
-        "🧮 TÍNH TOÁN",
-        use_container_width=True
+    st.write("")
+
+    calculate = st.button("🧮 TÍNH TOÁN")
+
+
+# =========================================================
+# CHƯA TÍNH
+# =========================================================
+
+if not calculate:
+
+    st.markdown("""
+    <div class="empty-box">
+        <div class="empty-icon">💰</div>
+        <h3>Nhập thông tin khoản tiết kiệm</h3>
+        <p>
+            Điền số tiền, kỳ hạn và lãi suất ở bảng bên trái,
+            sau đó nhấn <b>🧮 TÍNH TOÁN</b>.
+        </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.markdown(
+        '<div class="footer">Smart Savings Calculator • Công cụ mô phỏng tiền gửi</div>',
+        unsafe_allow_html=True
     )
 
-
-# =========================
-# TIÊU ĐỀ
-# =========================
-
-st.markdown(
-    '<div class="main-title">💰 SMART SAVINGS CALCULATOR</div>',
-    unsafe_allow_html=True
-)
-
-st.markdown(
-    '<div class="subtitle">Công cụ tính toán và phân tích tiền gửi tiết kiệm</div>',
-    unsafe_allow_html=True
-)
+    st.stop()
 
 
-# =========================
-# TRẠNG THÁI BAN ĐẦU
-# =========================
+# =========================================================
+# KIỂM TRA DỮ LIỆU
+# =========================================================
 
-if "calculated" not in st.session_state:
-    st.session_state.calculated = False
+if principal <= 0:
 
+    st.error("⚠️ Vui lòng nhập số tiền gửi lớn hơn 0 VNĐ.")
+    st.stop()
 
-# =========================
-# XỬ LÝ TÍNH TOÁN
-# =========================
+if annual_rate < 0:
 
-if calculate:
-
-    try:
-        amount = float(
-            amount_text.replace(",", "").replace(".", "")
-        )
-
-        months = int(months_text)
-
-        rate = float(
-            rate_text.replace(",", ".")
-        )
-
-        if amount <= 0:
-            st.error("Số tiền gửi phải lớn hơn 0.")
-
-        elif months <= 0:
-            st.error("Kỳ hạn phải lớn hơn 0 tháng.")
-
-        elif rate < 0:
-            st.error("Lãi suất không được âm.")
-
-        else:
-            st.session_state.calculated = True
-            st.session_state.amount = amount
-            st.session_state.months = months
-            st.session_state.rate = rate
-            st.session_state.interest_type = interest_type
-            st.session_state.receive_type = receive_type
-
-    except ValueError:
-        st.error(
-            "Vui lòng nhập số hợp lệ. Ví dụ: 100000000 ; 12 ; 5"
-        )
+    st.error("⚠️ Lãi suất không được nhỏ hơn 0%.")
+    st.stop()
 
 
-# =========================
-# HIỂN THỊ KẾT QUẢ
-# =========================
+# =========================================================
+# TÍNH TOÁN
+# =========================================================
 
-if st.session_state.calculated:
+monthly_rate = annual_rate / 100 / 12
 
-    amount = st.session_state.amount
-    months = st.session_state.months
-    rate = st.session_state.rate
-    interest_type = st.session_state.interest_type
-    receive_type = st.session_state.receive_type
+balances = []
+interests = []
 
-    monthly_rate = rate / 100 / 12
+balance = float(principal)
 
-    # -------------------------
-    # TÍNH TOÁN
-    # -------------------------
+# ---------------------------------------------------------
+# LÃI ĐƠN
+# ---------------------------------------------------------
 
-    data = []
+if interest_type == "Lãi đơn":
 
-    for month in range(months + 1):
+    monthly_interest = principal * monthly_rate
 
-        if interest_type == "Lãi đơn":
+    for month in range(1, months + 1):
 
-            total = amount * (
-                1 + (rate / 100) * month / 12
-            )
+        interest = monthly_interest
 
-        else:
+        balance = principal + monthly_interest * month
 
-            total = amount * (
-                (1 + monthly_rate) ** month
-            )
+        interests.append(interest)
+        balances.append(balance)
 
-        interest = total - amount
 
-        data.append({
-            "Tháng": month,
-            "Lãi": interest,
-            "Tổng gốc + lãi": total
-        })
-
-    df = pd.DataFrame(data)
-
-    final_total = df.iloc[-1]["Tổng gốc + lãi"]
-    total_interest = df.iloc[-1]["Lãi"]
-
-    periodic_interest = (
-        total_interest / months
-        if months > 0
-        else 0
-    )
-
-    # =========================
-    # KẾT QUẢ TỔNG QUÁT
-    # =========================
-
-    st.markdown("## 📊 Kết quả tính toán")
-
-    col1, col2, col3 = st.columns(3)
-
-    with col1:
-        st.markdown(
-            f"""
-            <div class="result-card">
-                <div class="result-title">💵 Tiền lãi định kỳ</div>
-                <div class="result-value">
-                    {format_money(periodic_interest)}
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-    with col2:
-        st.markdown(
-            f"""
-            <div class="result-card">
-                <div class="result-title">📈 Tổng tiền lãi</div>
-                <div class="result-value">
-                    {format_money(total_interest)}
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-    with col3:
-        st.markdown(
-            f"""
-            <div class="result-card">
-                <div class="result-title">💰 Tổng tiền nhận được</div>
-                <div class="result-value">
-                    {format_money(final_total)}
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    # =========================
-    # THÔNG TIN KHOẢN GỬI
-    # =========================
-
-    st.markdown("## 📋 Thông tin khoản gửi")
-
-    info1, info2, info3, info4 = st.columns(4)
-
-    with info1:
-        st.markdown(
-            f"""
-            <div class="info-box">
-                <div class="info-label">Số tiền gốc</div>
-                <div class="info-value">
-                    {format_money(amount)}
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-    with info2:
-        st.markdown(
-            f"""
-            <div class="info-box">
-                <div class="info-label">Kỳ hạn</div>
-                <div class="info-value">
-                    {months} tháng
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-    with info3:
-        st.markdown(
-            f"""
-            <div class="info-box">
-                <div class="info-label">Lãi suất</div>
-                <div class="info-value">
-                    {rate:.2f}%/năm
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-    with info4:
-        st.markdown(
-            f"""
-            <div class="info-box">
-                <div class="info-label">Hình thức tính lãi</div>
-                <div class="info-value">
-                    {interest_type}
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-
-    st.markdown("<br>", unsafe_allow_html=True)
-
-    # =========================
-    # BIỂU ĐỒ
-    # =========================
-
-    st.markdown("## 📈 Biểu đồ tăng trưởng khoản tiền")
-
-    chart_df = df.set_index("Tháng")[
-        ["Tổng gốc + lãi"]
-    ]
-
-    st.line_chart(
-        chart_df,
-        use_container_width=True,
-        height=400
-    )
-
-    # =========================
-    # BẢNG CHI TIẾT
-    # =========================
-
-    st.markdown("## 📑 Bảng chi tiết")
-
-    st.caption(
-        "Theo dõi số tiền lãi và tổng số tiền nhận được qua từng tháng."
-    )
-
-    display_df = df.copy()
-
-    display_df["Lãi"] = display_df["Lãi"].apply(
-        lambda x: f"{x:,.0f} VNĐ"
-    )
-
-    display_df["Tổng gốc + lãi"] = display_df[
-        "Tổng gốc + lãi"
-    ].apply(
-        lambda x: f"{x:,.0f} VNĐ"
-    )
-
-    st.dataframe(
-        display_df,
-        use_container_width=True,
-        hide_index=True
-    )
-
-    # =========================
-    # GHI CHÚ
-    # =========================
-
-    st.info(
-        "💡 Lãi đơn chỉ tính lãi trên số tiền gốc ban đầu. "
-        "Lãi kép cộng tiền lãi vào vốn để tiếp tục sinh lãi "
-        "ở các tháng tiếp theo."
-    )
+# ---------------------------------------------------------
+# LÃI KÉP
+# ---------------------------------------------------------
 
 else:
 
-    # =========================
-    # MÀN HÌNH KHI CHƯA NHẬP
-    # =========================
+    if payout_type == "Lãnh lãi theo tháng":
 
-    st.markdown(
-        """
-        <div style="
-            margin-top:60px;
-            padding:50px;
-            text-align:center;
-            border:1px solid rgba(255,255,255,0.12);
-            border-radius:20px;
-            background:rgba(255,255,255,0.025);
-        ">
-            <div style="font-size:55px;">💰</div>
-            <h2>Chưa có dữ liệu tính toán</h2>
-            <p style="color:#9da6b5;">
-                Nhập số tiền, kỳ hạn và lãi suất ở bên trái,
-                sau đó bấm <b>🧮 TÍNH TOÁN</b>.
-            </p>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+        # Lãi được trả ra mỗi tháng nên không nhập vào vốn
+        monthly_interest = principal * monthly_rate
+
+        for month in range(1, months + 1):
+
+            interest = monthly_interest
+
+            balance = principal + monthly_interest * month
+
+            interests.append(interest)
+            balances.append(balance)
+
+    else:
+
+        # Lãi nhập vào vốn mỗi tháng
+        for month in range(1, months + 1):
+
+            old_balance = balance
+
+            interest = old_balance * monthly_rate
+
+            balance = old_balance + interest
+
+            interests.append(interest)
+            balances.append(balance)
+
+
+# =========================================================
+# KẾT QUẢ
+# =========================================================
+
+total_received = balances[-1]
+total_interest = total_received - principal
+
+periodic_interest = interests[0] if interests else 0
+
+
+# =========================================================
+# HIỆU ỨNG
+# =========================================================
+
+st.balloons()
+
+
+# =========================================================
+# KẾT QUẢ TÍNH TOÁN
+# =========================================================
+
+st.markdown(
+    '<div class="section-title">📊 Kết quả tính toán</div>',
+    unsafe_allow_html=True
+)
+
+col1, col2, col3 = st.columns(3)
+
+with col1:
+
+    st.markdown(f"""
+    <div class="result-card">
+        <div class="result-title">💵 Tiền lãi định kỳ</div>
+        <div class="result-value">{format_money(periodic_interest)}</div>
+        <div class="result-note">Khoản lãi phát sinh mỗi tháng</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+
+with col2:
+
+    st.markdown(f"""
+    <div class="result-card">
+        <div class="result-title">📈 Tổng tiền lãi</div>
+        <div class="result-value">{format_money(total_interest)}</div>
+        <div class="result-note">Tổng lãi sau {months} tháng</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+
+with col3:
+
+    st.markdown(f"""
+    <div class="result-card">
+        <div class="result-title">💰 Tổng tiền nhận được</div>
+        <div class="result-value">{format_money(total_received)}</div>
+        <div class="result-note">Gốc + toàn bộ tiền lãi</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+
+# =========================================================
+# THÔNG TIN KHOẢN GỬI
+# =========================================================
+
+st.markdown(
+    '<div class="section-title">📋 Thông tin khoản gửi</div>',
+    unsafe_allow_html=True
+)
+
+info1, info2, info3, info4 = st.columns(4)
+
+with info1:
+    st.markdown(f"""
+    **Số tiền gốc**
+
+    {format_money(principal)}
+    """)
+
+with info2:
+    st.markdown(f"""
+    **Kỳ hạn**
+
+    {months} tháng
+    """)
+
+with info3:
+    st.markdown(f"""
+    **Lãi suất**
+
+    {annual_rate:.2f}%/năm
+    """)
+
+with info4:
+    st.markdown(f"""
+    **Hình thức**
+
+    {interest_type}
+    """)
+
+
+# =========================================================
+# BIỂU ĐỒ TĂNG TRƯỞNG
+# =========================================================
+
+st.markdown(
+    '<div class="section-title">📈 Biểu đồ tăng trưởng khoản tiền</div>',
+    unsafe_allow_html=True
+)
+
+# Dùng Streamlit native chart → KHÔNG CẦN PLOTLY
+chart_data = {
+    "Tháng": list(range(0, months + 1)),
+    "Số tiền": [principal] + balances
+}
+
+st.line_chart(
+    chart_data,
+    x="Tháng",
+    y="Số tiền",
+    height=350
+)
+
+
+# =========================================================
+# BẢNG CHI TIẾT
+# =========================================================
+
+st.markdown(
+    '<div class="section-title">📑 Bảng chi tiết</div>',
+    unsafe_allow_html=True
+)
+
+table_html = """
+<table class="detail-table">
+<tr>
+    <th>Tháng</th>
+    <th>Lãi</th>
+    <th>Tổng gốc + lãi</th>
+</tr>
+"""
+
+for i in range(months):
+
+    table_html += f"""
+    <tr>
+        <td>Tháng {i + 1}</td>
+        <td>{format_money(interests[i])}</td>
+        <td>{format_money(balances[i])}</td>
+    </tr>
+    """
+
+table_html += "</table>"
+
+st.markdown(table_html, unsafe_allow_html=True)
+
+
+# =========================================================
+# GHI CHÚ
+# =========================================================
+
+st.markdown(f"""
+<div class="info-box">
+
+### 💡 Giải thích nhanh
+
+- **Lãi đơn:** tiền lãi chỉ được tính trên số tiền gốc ban đầu.
+- **Lãi kép:** tiền lãi được cộng vào vốn để tiếp tục sinh lãi ở các tháng sau.
+- **Lãnh lãi theo tháng:** tiền lãi được nhận ra mỗi tháng nên không cộng vào vốn.
+- **Lãnh lãi cuối kỳ:** tiền được nhận vào cuối kỳ hạn.
+
+**Sau {months} tháng:**
+
+💵 Tiền gốc: **{format_money(principal)}**
+
+📈 Tiền lãi: **{format_money(total_interest)}**
+
+💰 Tổng nhận: **{format_money(total_received)}**
+
+</div>
+""", unsafe_allow_html=True)
+
+
+# =========================================================
+# FOOTER
+# =========================================================
+
+st.markdown(
+    '<div class="footer">✨ Smart Savings Calculator • Tính toán đơn giản, trực quan, dễ hiểu</div>',
+    unsafe_allow_html=True
+)
