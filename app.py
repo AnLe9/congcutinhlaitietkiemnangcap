@@ -20,7 +20,7 @@ st.set_page_config(
 st.markdown("""
 <style>
 
-/* Tiêu đề chính */
+/* Tiêu đề */
 .main-title {
     text-align: center;
     font-size: 38px;
@@ -37,26 +37,48 @@ st.markdown("""
 }
 
 
-/* 3 ô kết quả */
+/* Các ô kết quả */
 [data-testid="stMetric"] {
     background-color: transparent !important;
     border: 1px solid rgba(255, 255, 255, 0.35);
     border-radius: 14px;
     padding: 20px 18px;
-    min-height: 125px;
+    min-height: 120px;
 }
 
-
-/* Tên của chỉ tiêu */
 [data-testid="stMetricLabel"] {
     font-size: 16px !important;
 }
 
-
-/* Số tiền */
 [data-testid="stMetricValue"] {
     font-size: 25px !important;
     font-weight: 700 !important;
+}
+
+
+/* Các mốc chính */
+.moc-box {
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 14px;
+    padding: 14px 8px;
+    text-align: center;
+    min-height: 75px;
+}
+
+.moc-thang {
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.moc-tien {
+    font-size: 17px;
+    font-weight: 700;
+}
+
+
+/* Thông tin */
+.info-box {
+    padding: 10px 5px;
 }
 
 
@@ -100,7 +122,7 @@ st.markdown(
 
 
 # =========================================================
-# SIDEBAR - NHẬP THÔNG TIN
+# SIDEBAR
 # =========================================================
 
 st.sidebar.header("⚙️ Thông tin khoản gửi")
@@ -159,7 +181,7 @@ tinh_lai = st.sidebar.button(
 
 
 # =========================================================
-# KHI CHƯA BẤM TÍNH
+# CHƯA TÍNH TOÁN
 # =========================================================
 
 if not tinh_lai:
@@ -173,7 +195,7 @@ if not tinh_lai:
 
 
 # =========================================================
-# KIỂM TRA DỮ LIỆU
+# KIỂM TRA
 # =========================================================
 
 if tien_gui <= 0:
@@ -183,14 +205,14 @@ if tien_gui <= 0:
 
 
 # =========================================================
-# THÔNG SỐ TÍNH TOÁN
+# THÔNG SỐ
 # =========================================================
 
 lai_nam = lai_suat / 100
 so_nam = ky_han / 12
 
 
-# Xác định số lần ghép lãi trong năm
+# Số lần ghép lãi trong một năm
 
 if hinh_thuc_nhan_lai == "Lãnh lãi theo tháng":
 
@@ -206,7 +228,7 @@ else:
 
 
 # =========================================================
-# TÍNH LÃI ĐƠN
+# LÃI ĐƠN
 # =========================================================
 
 lai_don = tien_gui * lai_nam * so_nam
@@ -215,7 +237,7 @@ tong_tien_don = tien_gui + lai_don
 
 
 # =========================================================
-# TÍNH LÃI KÉP
+# LÃI KÉP
 # =========================================================
 
 so_ky = ky_han / (12 / tan_suat)
@@ -228,7 +250,7 @@ lai_kep = tong_tien_kep - tien_gui
 
 
 # =========================================================
-# CHỌN KẾT QUẢ THEO HÌNH THỨC TÍNH LÃI
+# KẾT QUẢ ĐƯỢC CHỌN
 # =========================================================
 
 if hinh_thuc_lai == "Lãi đơn":
@@ -243,7 +265,7 @@ else:
 
 
 # =========================================================
-# TÍNH TIỀN LÃI ĐỊNH KỲ
+# TIỀN LÃI ĐỊNH KỲ
 # =========================================================
 
 if hinh_thuc_lai == "Lãi đơn":
@@ -268,11 +290,8 @@ else:
 
     elif hinh_thuc_nhan_lai == "Lãnh lãi theo quý":
 
-        lai_dinh_ky = (
-            tien_gui
-            * (
-                (1 + lai_nam / 4) ** 1 - 1
-            )
+        lai_dinh_ky = tien_gui * (
+            (1 + lai_nam / 4) - 1
         )
 
     else:
@@ -281,7 +300,7 @@ else:
 
 
 # =========================================================
-# KẾT QUẢ TÍNH TOÁN
+# KẾT QUẢ
 # =========================================================
 
 st.subheader("📊 Kết quả tính toán")
@@ -346,7 +365,7 @@ with col3:
 
 with col4:
 
-    st.write("**Hình thức**")
+    st.write("**Hình thức tính lãi**")
     st.write(hinh_thuc_lai)
 
 
@@ -359,12 +378,12 @@ st.divider()
 st.subheader("📈 Khoản tiền tăng theo thời gian")
 
 st.caption(
-    "Biểu đồ thể hiện tổng số tiền gồm gốc và lãi "
-    "tại các mốc thời gian trong kỳ hạn."
+    "Đơn vị trên biểu đồ là triệu đồng. "
+    "Đường biểu diễn thể hiện tổng tiền gồm cả gốc và lãi."
 )
 
 
-# Chọn tối đa 7 mốc để biểu đồ không bị rối
+# Tạo các mốc thời gian
 
 if ky_han <= 6:
 
@@ -379,6 +398,8 @@ else:
 
     cac_moc = sorted(list(set(cac_moc)))
 
+
+# Tính số tiền tại từng mốc
 
 tien_theo_moc = []
 
@@ -399,21 +420,29 @@ for thang in cac_moc:
             1 + lai_nam / tan_suat
         ) ** so_ky_moc
 
-    tien_theo_moc.append(gia_tri)
+    tien_theo_moc.append(
+        gia_tri / 1_000_000
+    )
 
 
-# Tạo DataFrame cho biểu đồ
+# DataFrame cho biểu đồ
 
 du_lieu_bieu_do = pd.DataFrame({
+
     "Tháng": cac_moc,
-    "Tổng tiền": tien_theo_moc
+
+    "Tổng tiền (triệu VNĐ)": tien_theo_moc
+
 })
 
+
+# Vẽ biểu đồ
 
 st.line_chart(
     du_lieu_bieu_do,
     x="Tháng",
-    y="Tổng tiền"
+    y="Tổng tiền (triệu VNĐ)",
+    height=350
 )
 
 
@@ -431,9 +460,21 @@ for i in range(len(cac_moc)):
 
     with cac_cot[i]:
 
-        st.metric(
-            f"Tháng {cac_moc[i]}",
-            dinh_dang_trieu(tien_theo_moc[i])
+        st.markdown(
+            f"""
+            <div class="moc-box">
+
+                <div class="moc-thang">
+                    Tháng {cac_moc[i]}
+                </div>
+
+                <div class="moc-tien">
+                    {tien_theo_moc[i]:,.1f} triệu
+                </div>
+
+            </div>
+            """,
+            unsafe_allow_html=True
         )
 
 
@@ -481,7 +522,7 @@ st.info(
 
 
 # =========================================================
-# BẢNG DIỄN BIẾN KHOẢN TIỀN
+# BẢNG DIỄN BIẾN
 # =========================================================
 
 st.divider()
@@ -491,8 +532,8 @@ st.subheader("📅 Diễn biến khoản tiền theo từng tháng")
 
 st.caption(
     "Tiền gốc = số tiền ban đầu | "
-    "Lãi phát sinh = phần lãi trong tháng | "
-    "Tổng tiền = tiền gốc + tiền lãi"
+    "Lãi phát sinh = tiền lãi trong tháng | "
+    "Tổng tiền nhận được = gốc + lãi"
 )
 
 
@@ -576,8 +617,6 @@ for thang in range(ky_han + 1):
     })
 
 
-# Tạo bảng
-
 df = pd.DataFrame(bang_du_lieu)
 
 
@@ -589,12 +628,12 @@ st.dataframe(
 
 
 # =========================================================
-# GIẢI THÍCH KẾT QUẢ
+# GIẢI THÍCH
 # =========================================================
 
 st.divider()
 
-st.subheader("💡 Giải thích")
+st.subheader("💡 Giải thích kết quả")
 
 
 if hinh_thuc_lai == "Lãi đơn":
@@ -602,7 +641,7 @@ if hinh_thuc_lai == "Lãi đơn":
     st.info(
         "Bạn đang sử dụng **lãi đơn**. "
         "Tiền lãi được tính dựa trên số tiền gốc ban đầu, "
-        "vì vậy tiền lãi mỗi kỳ không tăng theo số vốn."
+        "nên tiền lãi mỗi kỳ không tăng theo số vốn."
     )
 
 else:
