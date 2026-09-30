@@ -1,6 +1,4 @@
 import streamlit as st
-import pandas as pd
-import matplotlib.pyplot as plt
 
 # =========================================================
 # CẤU HÌNH TRANG
@@ -73,7 +71,7 @@ st.markdown(
 
 
 # =========================================================
-# SIDEBAR - NHẬP THÔNG TIN
+# SIDEBAR
 # =========================================================
 st.sidebar.header("⚙️ Thông tin khoản gửi")
 
@@ -125,36 +123,34 @@ tinh_lai = st.sidebar.button(
 
 
 # =========================================================
-# KIỂM TRA DỮ LIỆU
+# TÍNH TOÁN
 # =========================================================
 if tinh_lai:
 
     if tien_gui <= 0:
-        st.error("⚠️ Số tiền gửi phải lớn hơn 0.")
 
-    elif lai_suat < 0:
-        st.error("⚠️ Lãi suất không hợp lệ.")
+        st.error("⚠️ Số tiền gửi phải lớn hơn 0.")
 
     else:
 
-        # =================================================
-        # BIẾN CƠ BẢN
-        # =================================================
         r = lai_suat / 100
         so_nam = ky_han / 12
 
         # =================================================
-        # TÍNH LÃI
+        # LÃI ĐƠN
         # =================================================
-
         if hinh_thuc_gui == "Lãi đơn":
 
             tong_tien_lai = tien_gui * r * so_nam
             tong_tien = tien_gui + tong_tien_lai
 
+        # =================================================
+        # LÃI KÉP
+        # =================================================
         else:
 
             if hinh_thuc_nhan_lai == "Lãnh lãi theo tháng":
+
                 tan_suat = 12
 
                 tong_tien = tien_gui * (
@@ -162,6 +158,7 @@ if tinh_lai:
                 ) ** (tan_suat * so_nam)
 
             elif hinh_thuc_nhan_lai == "Lãnh lãi theo quý":
+
                 tan_suat = 4
 
                 tong_tien = tien_gui * (
@@ -169,7 +166,6 @@ if tinh_lai:
                 ) ** (tan_suat * so_nam)
 
             else:
-                tan_suat = 1
 
                 tong_tien = tien_gui * (
                     1 + r
@@ -177,10 +173,10 @@ if tinh_lai:
 
             tong_tien_lai = tong_tien - tien_gui
 
+
         # =================================================
         # LÃI ĐỊNH KỲ
         # =================================================
-
         if hinh_thuc_nhan_lai == "Lãnh lãi theo tháng":
 
             lai_dinh_ky = tien_gui * r / 12
@@ -195,20 +191,21 @@ if tinh_lai:
 
 
         # =================================================
-        # TÍNH LÃI KÉP ĐỂ SO SÁNH
+        # SO SÁNH LÃI ĐƠN - LÃI KÉP
         # =================================================
-
-        lai_kep_so_sanh = tien_gui * (
-            1 + r
-        ) ** so_nam - tien_gui
-
         lai_don_so_sanh = tien_gui * r * so_nam
 
+        lai_kep_so_sanh = (
+            tien_gui * (1 + r) ** so_nam
+            - tien_gui
+        )
+
+        chenhlech = lai_kep_so_sanh - lai_don_so_sanh
+
 
         # =================================================
-        # KẾT QUẢ CHÍNH
+        # KẾT QUẢ
         # =================================================
-
         st.subheader("📊 Kết quả tính toán")
 
         col1, col2, col3 = st.columns(3)
@@ -265,7 +262,6 @@ if tinh_lai:
         # =================================================
         # THÔNG TIN KHOẢN GỬI
         # =================================================
-
         st.divider()
 
         st.subheader("📋 Thông tin khoản gửi")
@@ -292,15 +288,14 @@ if tinh_lai:
         # =================================================
         # BIỂU ĐỒ TĂNG TRƯỞNG
         # =================================================
-
         st.divider()
 
         st.subheader("📈 Biểu đồ tăng trưởng khoản tiền")
 
-        danh_sach_thang = []
-        danh_sach_tien = []
+        thang_list = []
+        tien_list = []
 
-        for thang in range(0, ky_han + 1):
+        for thang in range(ky_han + 1):
 
             nam = thang / 12
 
@@ -330,35 +325,26 @@ if tinh_lai:
                         1 + r
                     ) ** nam
 
-            danh_sach_thang.append(thang)
-            danh_sach_tien.append(gia_tri)
+            thang_list.append(thang)
+            tien_list.append(gia_tri)
 
-        df = pd.DataFrame({
-            "Tháng": danh_sach_thang,
-            "Số tiền": danh_sach_tien
-        })
 
-        fig, ax = plt.subplots(figsize=(10, 5))
+        # Streamlit tự tạo biểu đồ
+        chart_data = {
+            "Số tiền (VNĐ)": tien_list
+        }
 
-        ax.plot(
-            df["Tháng"],
-            df["Số tiền"],
-            linewidth=2
+        st.line_chart(
+            chart_data,
+            x=thang_list,
+            x_label="Thời gian (tháng)",
+            y_label="Số tiền (VNĐ)"
         )
 
-        ax.set_xlabel("Thời gian (tháng)")
-        ax.set_ylabel("Giá trị khoản tiền (VNĐ)")
-        ax.set_title("Giá trị khoản tiền theo thời gian")
-
-        ax.grid(True, alpha=0.3)
-
-        st.pyplot(fig)
-
 
         # =================================================
-        # SO SÁNH LÃI ĐƠN - LÃI KÉP
+        # SO SÁNH
         # =================================================
-
         st.divider()
 
         st.subheader("⚖️ So sánh lãi đơn và lãi kép")
@@ -381,8 +367,6 @@ if tinh_lai:
 
         with col3:
 
-            chenhlech = lai_kep_so_sanh - lai_don_so_sanh
-
             st.metric(
                 "Chênh lệch",
                 dinh_dang_tien(chenhlech)
@@ -392,19 +376,18 @@ if tinh_lai:
         # =================================================
         # BẢNG DIỄN BIẾN
         # =================================================
-
         st.divider()
 
         st.subheader("📅 Bảng diễn biến khoản tiền")
 
-        df_hien_thi = df.copy()
-
-        df_hien_thi["Số tiền"] = df_hien_thi[
-            "Số tiền"
-        ].apply(dinh_dang_tien)
-
         st.dataframe(
-            df_hien_thi,
+            {
+                "Tháng": thang_list,
+                "Số tiền (VNĐ)": [
+                    dinh_dang_tien(x)
+                    for x in tien_list
+                ]
+            },
             use_container_width=True,
             hide_index=True
         )
@@ -413,7 +396,6 @@ if tinh_lai:
         # =================================================
         # NHẬN XÉT
         # =================================================
-
         st.divider()
 
         st.subheader("💡 Nhận xét")
@@ -421,22 +403,22 @@ if tinh_lai:
         if hinh_thuc_gui == "Lãi đơn":
 
             st.info(
-                "Lãi đơn tính tiền lãi dựa trên số tiền gốc ban đầu. "
-                "Phần lãi không được cộng vào vốn để tiếp tục sinh lãi."
+                "Lãi đơn được tính dựa trên số tiền gốc ban đầu. "
+                "Tiền lãi không được cộng vào vốn để tiếp tục sinh lãi."
             )
 
         else:
 
             st.info(
-                "Lãi kép cho phép tiền lãi được cộng vào vốn, "
-                "sau đó tiếp tục tạo ra tiền lãi ở các kỳ tiếp theo."
+                "Lãi kép cho phép tiền lãi được cộng vào vốn "
+                "và tiếp tục sinh lãi trong các kỳ tiếp theo."
             )
 
-        if lai_kep_so_sanh > lai_don_so_sanh:
+        if chenhlech > 0:
 
             st.success(
                 f"Với kỳ hạn {ky_han} tháng, "
-                f"lãi kép tạo ra nhiều tiền lãi hơn lãi đơn "
+                f"lãi kép cao hơn lãi đơn "
                 f"{dinh_dang_tien(chenhlech)}."
             )
 
