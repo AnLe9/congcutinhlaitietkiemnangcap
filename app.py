@@ -1,62 +1,68 @@
 import streamlit as st
 
-# =========================================================
+# ==============================
 # CẤU HÌNH TRANG
-# =========================================================
+# ==============================
+
 st.set_page_config(
     page_title="Smart Savings Calculator",
     page_icon="💰",
     layout="wide"
 )
 
-# =========================================================
-# CSS GIAO DIỆN
-# =========================================================
+# ==============================
+# CSS
+# ==============================
+
 st.markdown("""
 <style>
-    .main-title {
-        text-align: center;
-        font-size: 38px;
-        font-weight: bold;
-        margin-bottom: 5px;
-    }
 
-    .sub-title {
-        text-align: center;
-        color: #666;
-        margin-bottom: 30px;
-    }
+.main-title {
+    text-align: center;
+    font-size: 38px;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
 
-    .result-box {
-        padding: 20px;
-        border-radius: 12px;
-        background-color: #f5f7fa;
-        text-align: center;
-    }
+.sub-title {
+    text-align: center;
+    color: #666;
+    margin-bottom: 30px;
+}
 
-    .result-title {
-        font-size: 16px;
-        color: #666;
-    }
+.result-box {
+    padding: 20px;
+    border-radius: 12px;
+    background-color: #f5f7fa;
+    text-align: center;
+}
 
-    .result-value {
-        font-size: 24px;
-        font-weight: bold;
-    }
+.result-title {
+    font-size: 16px;
+    color: #666;
+}
+
+.result-value {
+    font-size: 24px;
+    font-weight: bold;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
 
-# =========================================================
+# ==============================
 # HÀM ĐỊNH DẠNG TIỀN
-# =========================================================
+# ==============================
+
 def dinh_dang_tien(so_tien):
     return f"{so_tien:,.0f} VNĐ"
 
 
-# =========================================================
+# ==============================
 # TIÊU ĐỀ
-# =========================================================
+# ==============================
+
 st.markdown(
     '<div class="main-title">💰 SMART SAVINGS CALCULATOR</div>',
     unsafe_allow_html=True
@@ -70,16 +76,17 @@ st.markdown(
 )
 
 
-# =========================================================
-# SIDEBAR
-# =========================================================
+# ==============================
+# NHẬP THÔNG TIN
+# ==============================
+
 st.sidebar.header("⚙️ Thông tin khoản gửi")
 
 tien_gui = st.sidebar.number_input(
     "Số tiền gửi (VNĐ)",
     min_value=0.0,
-    value=10_000_000.0,
-    step=1_000_000.0,
+    value=10000000.0,
+    step=1000000.0,
     format="%.0f"
 )
 
@@ -122,9 +129,10 @@ tinh_lai = st.sidebar.button(
 )
 
 
-# =========================================================
+# ==============================
 # TÍNH TOÁN
-# =========================================================
+# ==============================
+
 if tinh_lai:
 
     if tien_gui <= 0:
@@ -136,17 +144,19 @@ if tinh_lai:
         r = lai_suat / 100
         so_nam = ky_han / 12
 
-        # =================================================
+        # ==============================
         # LÃI ĐƠN
-        # =================================================
+        # ==============================
+
         if hinh_thuc_gui == "Lãi đơn":
 
             tong_tien_lai = tien_gui * r * so_nam
             tong_tien = tien_gui + tong_tien_lai
 
-        # =================================================
+        # ==============================
         # LÃI KÉP
-        # =================================================
+        # ==============================
+
         else:
 
             if hinh_thuc_nhan_lai == "Lãnh lãi theo tháng":
@@ -174,9 +184,10 @@ if tinh_lai:
             tong_tien_lai = tong_tien - tien_gui
 
 
-        # =================================================
+        # ==============================
         # LÃI ĐỊNH KỲ
-        # =================================================
+        # ==============================
+
         if hinh_thuc_nhan_lai == "Lãnh lãi theo tháng":
 
             lai_dinh_ky = tien_gui * r / 12
@@ -190,9 +201,10 @@ if tinh_lai:
             lai_dinh_ky = tong_tien_lai
 
 
-        # =================================================
+        # ==============================
         # SO SÁNH LÃI ĐƠN - LÃI KÉP
-        # =================================================
+        # ==============================
+
         lai_don_so_sanh = tien_gui * r * so_nam
 
         lai_kep_so_sanh = (
@@ -203,9 +215,10 @@ if tinh_lai:
         chenhlech = lai_kep_so_sanh - lai_don_so_sanh
 
 
-        # =================================================
+        # ==============================
         # KẾT QUẢ
-        # =================================================
+        # ==============================
+
         st.subheader("📊 Kết quả tính toán")
 
         col1, col2, col3 = st.columns(3)
@@ -259,9 +272,10 @@ if tinh_lai:
             )
 
 
-        # =================================================
-        # THÔNG TIN KHOẢN GỬI
-        # =================================================
+        # ==============================
+        # THÔNG TIN
+        # ==============================
+
         st.divider()
 
         st.subheader("📋 Thông tin khoản gửi")
@@ -285,12 +299,9 @@ if tinh_lai:
             st.write(hinh_thuc_gui)
 
 
-        # =================================================
-        # BIỂU ĐỒ TĂNG TRƯỞNG
-        # =================================================
-        st.divider()
-
-        st.subheader("📈 Biểu đồ tăng trưởng khoản tiền")
+        # ==============================
+        # DỮ LIỆU BIỂU ĐỒ
+        # ==============================
 
         thang_list = []
         tien_list = []
@@ -329,22 +340,30 @@ if tinh_lai:
             tien_list.append(gia_tri)
 
 
-        # Dữ liệu cho biểu đồ
-chart_data = {
-    "Tháng": thang_list,
-    "Số tiền (VNĐ)": tien_list
-}
+        # ==============================
+        # BIỂU ĐỒ
+        # ==============================
 
-st.line_chart(
-    chart_data,
-    x="Tháng",
-    y="Số tiền (VNĐ)"
-)
+        st.divider()
+
+        st.subheader("📈 Biểu đồ tăng trưởng khoản tiền")
+
+        chart_data = {
+            "Tháng": thang_list,
+            "Số tiền (VNĐ)": tien_list
+        }
+
+        st.line_chart(
+            chart_data,
+            x="Tháng",
+            y="Số tiền (VNĐ)"
+        )
 
 
-        # =================================================
+        # ==============================
         # SO SÁNH
-        # =================================================
+        # ==============================
+
         st.divider()
 
         st.subheader("⚖️ So sánh lãi đơn và lãi kép")
@@ -373,29 +392,33 @@ st.line_chart(
             )
 
 
-        # =================================================
+        # ==============================
         # BẢNG DIỄN BIẾN
-        # =================================================
+        # ==============================
+
         st.divider()
 
         st.subheader("📅 Bảng diễn biến khoản tiền")
 
+        bang_du_lieu = {
+            "Tháng": thang_list,
+            "Số tiền (VNĐ)": [
+                dinh_dang_tien(x)
+                for x in tien_list
+            ]
+        }
+
         st.dataframe(
-            {
-                "Tháng": thang_list,
-                "Số tiền (VNĐ)": [
-                    dinh_dang_tien(x)
-                    for x in tien_list
-                ]
-            },
+            bang_du_lieu,
             use_container_width=True,
             hide_index=True
         )
 
 
-        # =================================================
+        # ==============================
         # NHẬN XÉT
-        # =================================================
+        # ==============================
+
         st.divider()
 
         st.subheader("💡 Nhận xét")
@@ -421,6 +444,7 @@ st.line_chart(
                 f"lãi kép cao hơn lãi đơn "
                 f"{dinh_dang_tien(chenhlech)}."
             )
+
 
 else:
 
