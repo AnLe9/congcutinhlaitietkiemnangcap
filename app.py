@@ -1,5 +1,4 @@
 import pandas as pd
-import plotly.express as px
 import streamlit as st
 
 # =========================
@@ -96,7 +95,7 @@ if st.sidebar.button("🧮 Phân Tích Tiền Lãi", use_container_width=True):
 
     lai_kep_tong_lai = lai_kep_tong_tien - tien_gui
 
-    # Chọn số liệu hiển thị chính theo lựa chọn
+    # Chọn số liệu hiển thị chính
     if hinh_thuc_gui == "Lãi đơn":
       tong_tien_lai = lai_don_tong_lai
       tong_tien = lai_don_tong_tien
@@ -104,15 +103,9 @@ if st.sidebar.button("🧮 Phân Tích Tiền Lãi", use_container_width=True):
       tong_tien_lai = lai_kep_tong_lai
       tong_tien = lai_kep_tong_tien
 
-    # Tỉ lệ sinh lời (% Lãi / Gốc)
     hieu_suat_sinh_loi = (tong_tien_lai / tien_gui) * 100
-
-    # Lãi trung bình mỗi tháng
     lai_trung_binh_thang = tong_tien_lai / ky_han
 
-    # =========================
-    # HIỂN THỊ KẾT QUẢ TỔNG QUAN
-    # =========================
     st.success("✅ Phân tích tiền lãi thành công!")
 
     c1, c2, c3, c4 = st.columns(4)
@@ -127,21 +120,16 @@ if st.sidebar.button("🧮 Phân Tích Tiền Lãi", use_container_width=True):
 
     st.divider()
 
-    # =========================
-    # TẠO DỮ LIỆU BẢNG LÃI THEO THÁNG
-    # =========================
+    # DỮ LIỆU BẢNG LÃI THEO THÁNG
     lich_trinh = []
     goc_don = tien_gui
     goc_kep = tien_gui
-
     lai_thang_don = (tien_gui * r) / 12
 
     for m in range(1, ky_han + 1):
-      # Lãi đơn
       lai_don_trong_thang = lai_thang_don
       lai_don_tich_luy = lai_don_trong_thang * m
 
-      # Lãi kép
       if hinh_thuc_nhan_lai == "Nhập gốc hàng tháng":
         lai_kep_trong_thang = goc_kep * (r / 12)
         goc_kep += lai_kep_trong_thang
@@ -154,7 +142,6 @@ if st.sidebar.button("🧮 Phân Tích Tiền Lãi", use_container_width=True):
           lai_kep_trong_thang = 0
         lai_kep_tich_luy = goc_kep - tien_gui
       else:
-        # Nhập gốc cuối kỳ
         lai_kep_trong_thang = 0
         lai_kep_tich_luy = (
             tien_gui * ((1 + r) ** (m / 12)) - tien_gui
@@ -175,16 +162,12 @@ if st.sidebar.button("🧮 Phân Tích Tiền Lãi", use_container_width=True):
 
     df = pd.DataFrame(lich_trinh)
 
-    # =========================
-    # TABS BIỂU DIỄN LÃI
-    # =========================
     tab1, tab2, tab3 = st.tabs([
         "📊 Biểu đồ tích lũy lãi",
-        "🍰 Tỷ trọng Gốc vs Lãi",
+        "📊 Cơ cấu Gốc vs Lãi",
         "📋 Bảng chi tiết tiền lãi từng tháng",
     ])
 
-    # TAB 1: BIỂU ĐỒ TĂNG TRƯỞNG LÃI
     with tab1:
       st.subheader("Sự tăng trưởng của TIỀN LÃI qua các tháng")
       if hinh_thuc_gui == "Lãi kép":
@@ -195,31 +178,22 @@ if st.sidebar.button("🧮 Phân Tích Tiền Lãi", use_container_width=True):
         )
         chenh_lech_lai = lai_kep_tong_lai - lai_don_tong_lai
         st.info(
-            f"💡 **Chênh lệch:** Nhờ sức mạnh lãi kép, tiền lãi của bạn tăng"
-            f" thêm **{dinh_dang_tien(chenh_lech_lai)}** so với chỉ tính lãi"
-            " đơn!"
+            f"💡 **Chênh lệch:** Nhờ sức mạnh lãi kép, tiền lãi tăng thêm"
+            f" **{dinh_dang_tien(chenh_lech_lai)}** so với lãi đơn!"
         )
       else:
         st.line_chart(df.set_index("Tháng")[["Lãi tích lũy (Lãi đơn)"]])
 
-    # TAB 2: TỶ TRỌNG GỐC VÀ LÃI
     with tab2:
       st.subheader("Cơ cấu Tổng số tiền nhận về")
       col_chart1, col_chart2 = st.columns([2, 1])
 
       with col_chart1:
-        df_pie = pd.DataFrame({
-            "Thành phần": ["Tiền Gốc Ban Đầu", "Tiền Lãi Sinh Ra"],
-            "Số tiền": [tien_gui, tong_tien_lai],
-        })
-        fig = px.pie(
-            df_pie,
-            values="Số tiền",
-            names="Thành phần",
-            hole=0.4,
-            color_discrete_sequence=["#2b5c8f", "#2ea44f"],
+        df_bar = pd.DataFrame(
+            {"Số tiền (VNĐ)": [tien_gui, tong_tien_lai]},
+            index=["Tiền Gốc Ban Đầu", "Tiền Lãi Sinh Ra"],
         )
-        st.plotly_chart(fig, use_container_width=True)
+        st.bar_chart(df_bar)
 
       with col_chart2:
         st.write("### Tóm tắt cơ cấu:")
@@ -229,10 +203,8 @@ if st.sidebar.button("🧮 Phân Tích Tiền Lãi", use_container_width=True):
             f"- **Tỷ lệ lãi/gốc:** {tong_tien_lai / tien_gui * 100:.2f}%"
         )
 
-    # TAB 3: BẢNG LỊCH TRÌNH CHI TIẾT
     with tab3:
       st.subheader("Bảng thống kê tiền lãi phát sinh")
-
       df_display = df.copy()
       df_display["Lãi tích lũy (Lãi đơn)"] = df_display[
           "Lãi tích lũy (Lãi đơn)"
