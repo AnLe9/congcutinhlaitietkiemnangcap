@@ -1,19 +1,20 @@
-import io
 import pandas as pd
+import plotly.express as px
 import streamlit as st
 
 # =========================
 # CẤU HÌNH TRANG
 # =========================
 st.set_page_config(
-    page_title="Tính Lãi Gửi Tiết Kiệm & So Sánh Nâng Cấp",
+    page_title="Phân Tích & Biểu Diễn Lãi Tiết Kiệm",
     page_icon="💰",
     layout="wide",
 )
 
-st.title("💰 Ứng dụng Tính Lãi Tiết Kiệm & Tối Ưu Đầu Tư")
+st.title("💰 Biểu Diễn & Phân Tích Chi Tiết Tiền Lãi Tiết Kiệm")
 st.write(
-    "Hỗ trợ tính toán lãi đơn, lãi kép, so sánh hiệu quả và dự báo lạm phát."
+    "Ứng dụng tập trung trực quan hóa dòng tiền lãi, hiệu suất sinh lời và"
+    " sự tăng trưởng của lãi."
 )
 
 
@@ -30,7 +31,7 @@ def dinh_dang_tien(so_tien):
 st.sidebar.header("📌 Thông tin khoản gửi")
 
 tien_gui = st.sidebar.number_input(
-    "Số tiền gửi (VNĐ)",
+    "Số tiền gửi gốc (VNĐ)",
     min_value=0.0,
     value=100_000_000.0,
     step=10_000_000.0,
@@ -38,11 +39,11 @@ tien_gui = st.sidebar.number_input(
 )
 
 ky_han = st.sidebar.number_input(
-    "Kỳ hạn (tháng)", min_value=1, value=12, step=1
+    "Kỳ hạn gửi (tháng)", min_value=1, value=12, step=1
 )
 
 lai_suat = st.sidebar.number_input(
-    "Lãi suất (%/năm)", min_value=0.0, value=6.0, step=0.1
+    "Lãi suất (%/năm)", min_value=0.0, value=6.5, step=0.1
 )
 
 hinh_thuc_gui = st.sidebar.selectbox(
@@ -51,7 +52,7 @@ hinh_thuc_gui = st.sidebar.selectbox(
 
 if hinh_thuc_gui == "Lãi kép":
   hinh_thuc_nhan_lai = st.sidebar.selectbox(
-      "Kỳ hạn nhập gốc (tái đầu tư)",
+      "Kỳ hạn nhập gốc (Tái đầu tư lãi)",
       ["Nhập gốc hàng tháng", "Nhập gốc hàng quý", "Nhập gốc cuối kỳ"],
   )
 else:
@@ -60,15 +61,10 @@ else:
       ["Lãnh lãi hàng tháng", "Lãnh lãi hàng quý", "Lãnh lãi cuối kỳ"],
   )
 
-st.sidebar.subheader("📉 Tùy chọn nâng cao")
-lam_phat = st.sidebar.number_input(
-    "Dự báo lạm phát hàng năm (%)", min_value=0.0, value=3.5, step=0.1
-)
-
 # =========================
 # XỬ LÝ TÍNH TOÁN
 # =========================
-if st.sidebar.button("🧮 Tính Toán", use_container_width=True):
+if st.sidebar.button("🧮 Phân Tích Tiền Lãi", use_container_width=True):
   if tien_gui <= 0:
     st.error("Vui lòng nhập số tiền gửi lớn hơn 0.")
   else:
@@ -100,7 +96,7 @@ if st.sidebar.button("🧮 Tính Toán", use_container_width=True):
 
     lai_kep_tong_lai = lai_kep_tong_tien - tien_gui
 
-    # Chọn kết quả hiển thị chính theo lựa chọn của người dùng
+    # Chọn số liệu hiển thị chính theo lựa chọn
     if hinh_thuc_gui == "Lãi đơn":
       tong_tien_lai = lai_don_tong_lai
       tong_tien = lai_don_tong_tien
@@ -108,105 +104,144 @@ if st.sidebar.button("🧮 Tính Toán", use_container_width=True):
       tong_tien_lai = lai_kep_tong_lai
       tong_tien = lai_kep_tong_tien
 
-    # Tính tiền thực nhận sau lạm phát
-    i = lam_phat / 100
-    tong_tien_thuc_te = tong_tien / ((1 + i) ** so_nam)
+    # Tỉ lệ sinh lời (% Lãi / Gốc)
+    hieu_suat_sinh_loi = (tong_tien_lai / tien_gui) * 100
 
-    # Hiển thị Kết quả Tổng quan
-    st.success("✅ Tính toán thành công!")
+    # Lãi trung bình mỗi tháng
+    lai_trung_binh_thang = tong_tien_lai / ky_han
 
-    col1, col2, col3, col4 = st.columns(4)
-    with col1:
-      st.metric("Tổng tiền lãi", dinh_dang_tien(tong_tien_lai))
-    with col2:
-      st.metric("Tổng gốc + lãi", dinh_dang_tien(tong_tien))
-    with col3:
-      st.metric(
-          "Giá trị sau lạm phát",
-          dinh_dang_tien(tong_tien_thuc_te),
-          delta=f"-{dinh_dang_tien(tong_tien - tong_tien_thuc_te)}",
-          delta_color="inverse",
-      )
-    with col4:
-      st.metric(
-          "Lợi nhuận chênh lệch Lãi kép",
-          dinh_dang_tien(lai_kep_tong_tien - lai_don_tong_tien),
-      )
+    # =========================
+    # HIỂN THỊ KẾT QUẢ TỔNG QUAN
+    # =========================
+    st.success("✅ Phân tích tiền lãi thành công!")
+
+    c1, c2, c3, c4 = st.columns(4)
+    with c1:
+      st.metric("Tổng tiền lãi nhận được", dinh_dang_tien(tong_tien_lai))
+    with c2:
+      st.metric("Lãi trung bình / tháng", dinh_dang_tien(lai_trung_binh_thang))
+    with c3:
+      st.metric("Tỷ lệ sinh lời (ROI)", f"{hieu_suat_sinh_loi:.2f}%")
+    with c4:
+      st.metric("Tổng tiền nhận về (Gốc + Lãi)", dinh_dang_tien(tong_tien))
 
     st.divider()
 
-    # Tạo bảng dữ liệu tăng trưởng theo từng tháng
+    # =========================
+    # TẠO DỮ LIỆU BẢNG LÃI THEO THÁNG
+    # =========================
     lich_trinh = []
-    goc_lai_don = tien_gui
-    goc_lai_kep = tien_gui
+    goc_don = tien_gui
+    goc_kep = tien_gui
 
     lai_thang_don = (tien_gui * r) / 12
-    lai_thang_kep_rate = r / 12
 
     for m in range(1, ky_han + 1):
       # Lãi đơn
-      lai_don_thang = lai_thang_don
-      goc_lai_don += lai_don_thang
+      lai_don_trong_thang = lai_thang_don
+      lai_don_tich_luy = lai_don_trong_thang * m
 
       # Lãi kép
-      if hinh_thuc_gui == "Lãi kép":
-        if hinh_thuc_nhan_lai == "Nhập gốc hàng tháng":
-          lai_kep_thang = goc_lai_kep * lai_thang_kep_rate
-          goc_lai_kep += lai_kep_thang
-        elif hinh_thuc_nhan_lai == "Nhập gốc hàng quý" and m % 3 == 0:
-          lai_kep_thang = goc_lai_kep * (r / 4)
-          goc_lai_kep += lai_kep_thang
+      if hinh_thuc_nhan_lai == "Nhập gốc hàng tháng":
+        lai_kep_trong_thang = goc_kep * (r / 12)
+        goc_kep += lai_kep_trong_thang
+        lai_kep_tich_luy = goc_kep - tien_gui
+      elif hinh_thuc_nhan_lai == "Nhập gốc hàng quý":
+        if m % 3 == 0:
+          lai_kep_trong_thang = goc_kep * (r / 4)
+          goc_kep += lai_kep_trong_thang
         else:
-          lai_kep_thang = 0
+          lai_kep_trong_thang = 0
+        lai_kep_tich_luy = goc_kep - tien_gui
       else:
-        lai_kep_thang = 0
+        # Nhập gốc cuối kỳ
+        lai_kep_trong_thang = 0
+        lai_kep_tich_luy = (
+            tien_gui * ((1 + r) ** (m / 12)) - tien_gui
+            if m == ky_han
+            else 0
+        )
 
       lich_trinh.append({
           "Tháng": m,
-          "Lãi đơn acumul": goc_lai_don,
-          "Lãi kép acumul": goc_lai_kep if hinh_thuc_gui == "Lãi kép" else 0,
+          "Lãi tích lũy (Lãi đơn)": lai_don_tich_luy,
+          "Lãi tích lũy (Lãi kép)": lai_kep_tich_luy,
+          "Lãi phát sinh tháng đó": (
+              lai_kep_trong_thang
+              if hinh_thuc_gui == "Lãi kép"
+              else lai_don_trong_thang
+          ),
       })
 
     df = pd.DataFrame(lich_trinh)
 
-    # TAB CHI TIẾT
-    tab1, tab2 = st.tabs(
-        ["📈 Biểu đồ & So sánh", "📋 Bảng lịch trình chi tiết"]
-    )
+    # =========================
+    # TABS BIỂU DIỄN LÃI
+    # =========================
+    tab1, tab2, tab3 = st.tabs([
+        "📊 Biểu đồ tích lũy lãi",
+        "🍰 Tỷ trọng Gốc vs Lãi",
+        "📋 Bảng chi tiết tiền lãi từng tháng",
+    ])
 
+    # TAB 1: BIỂU ĐỒ TĂNG TRƯỞNG LÃI
     with tab1:
-      st.write("### So sánh Tăng trưởng Tài sản qua Thời gian")
+      st.subheader("Sự tăng trưởng của TIỀN LÃI qua các tháng")
       if hinh_thuc_gui == "Lãi kép":
-        st.line_chart(df.set_index("Tháng")[["Lãi đơn acumul", "Lãi kép acumul"]])
-      else:
-        st.line_chart(df.set_index("Tháng")[["Lãi đơn acumul"]])
-
-      st.info(
-          f"💡 **Mẹo:** Nếu gửi tiết kiệm theo dạng **Lãi kép**, bạn sẽ thu về"
-          f" thêm **{dinh_dang_tien(lai_kep_tong_tien - lai_don_tong_tien)}**"
-          " so với Lãi đơn."
-      )
-
-    with tab2:
-      st.write("### Bảng Lịch trình Nhận Lãi")
-      df_display = df.copy()
-      df_display["Lãi đơn acumul"] = df_display["Lãi đơn acumul"].apply(
-          dinh_dang_tien
-      )
-      if hinh_thuc_gui == "Lãi kép":
-        df_display["Lãi kép acumul"] = df_display["Lãi kép acumul"].apply(
-            dinh_dang_tien
+        st.line_chart(
+            df.set_index("Tháng")[
+                ["Lãi tích lũy (Lãi đơn)", "Lãi tích lũy (Lãi kép)"]
+            ]
+        )
+        chenh_lech_lai = lai_kep_tong_lai - lai_don_tong_lai
+        st.info(
+            f"💡 **Chênh lệch:** Nhờ sức mạnh lãi kép, tiền lãi của bạn tăng"
+            f" thêm **{dinh_dang_tien(chenh_lech_lai)}** so với chỉ tính lãi"
+            " đơn!"
         )
       else:
-        df_display = df_display.drop(columns=["Lãi kép acumul"])
+        st.line_chart(df.set_index("Tháng")[["Lãi tích lũy (Lãi đơn)"]])
+
+    # TAB 2: TỶ TRỌNG GỐC VÀ LÃI
+    with tab2:
+      st.subheader("Cơ cấu Tổng số tiền nhận về")
+      col_chart1, col_chart2 = st.columns([2, 1])
+
+      with col_chart1:
+        df_pie = pd.DataFrame({
+            "Thành phần": ["Tiền Gốc Ban Đầu", "Tiền Lãi Sinh Ra"],
+            "Số tiền": [tien_gui, tong_tien_lai],
+        })
+        fig = px.pie(
+            df_pie,
+            values="Số tiền",
+            names="Thành phần",
+            hole=0.4,
+            color_discrete_sequence=["#2b5c8f", "#2ea44f"],
+        )
+        st.plotly_chart(fig, use_container_width=True)
+
+      with col_chart2:
+        st.write("### Tóm tắt cơ cấu:")
+        st.write(f"- **Tiền gốc:** {dinh_dang_tien(tien_gui)}")
+        st.write(f"- **Tiền lãi:** {dinh_dang_tien(tong_tien_lai)}")
+        st.write(
+            f"- **Tỷ lệ lãi/gốc:** {tong_tien_lai / tien_gui * 100:.2f}%"
+        )
+
+    # TAB 3: BẢNG LỊCH TRÌNH CHI TIẾT
+    with tab3:
+      st.subheader("Bảng thống kê tiền lãi phát sinh")
+
+      df_display = df.copy()
+      df_display["Lãi tích lũy (Lãi đơn)"] = df_display[
+          "Lãi tích lũy (Lãi đơn)"
+      ].apply(dinh_dang_tien)
+      df_display["Lãi tích lũy (Lãi kép)"] = df_display[
+          "Lãi tích lũy (Lãi kép)"
+      ].apply(dinh_dang_tien)
+      df_display["Lãi phát sinh tháng đó"] = df_display[
+          "Lãi phát sinh tháng đó"
+      ].apply(dinh_dang_tien)
 
       st.dataframe(df_display, use_container_width=True)
-
-      # Nút Tải dữ liệu CSV
-      csv_data = df.to_csv(index=False).encode("utf-8")
-      st.download_button(
-          label="📥 Tải Bảng Lịch Trình (CSV)",
-          data=csv_data,
-          file_name="lich_trinh_tiet_kiem.csv",
-          mime="text/csv",
-      )
