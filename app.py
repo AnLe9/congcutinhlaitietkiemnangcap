@@ -9,6 +9,7 @@ st.image("IMG_7764.jpeg")
 
 st.set_page_config(page_title="Sổ tiết kiệm – Công cụ tính lãi", page_icon="📘", layout="wide")
 
+st.title("🌴🥥 Ứng dụng tính lãi gửi tiết kiệm của An Lê Trà Vinh 🥥🌴")
 XANH, CAM, LUC = "#60a5fa", "#fbbf24", "#2dd4bf"
 
 st.markdown(
