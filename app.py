@@ -5,6 +5,8 @@ import altair as alt
 import pandas as pd
 import streamlit as st
 
+st.image("IMG_7764.jpeg")
+
 st.set_page_config(page_title="Sổ tiết kiệm – Công cụ tính lãi", page_icon="📘", layout="wide")
 
 XANH, CAM, LUC = "#60a5fa", "#fbbf24", "#2dd4bf"
