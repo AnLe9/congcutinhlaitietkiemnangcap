@@ -7,30 +7,32 @@ import streamlit as st
 
 st.set_page_config(page_title="Sổ tiết kiệm – Công cụ tính lãi", page_icon="📘", layout="wide")
 
-XANH, CAM = "#1d4e89", "#e07a1f"
+XANH, CAM, LUC = "#60a5fa", "#fbbf24", "#2dd4bf"
 
 st.markdown(
     """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600&family=Source+Serif+4:wght@600;700&display=swap');
 html, body, [class*="css"] { font-family: 'Be Vietnam Pro', sans-serif; }
-h1, h2, h3 { font-family: 'Source Serif 4', serif !important; color: #1d4e89; }
-.head { border-left: 6px solid #1d4e89; padding: .5rem 1rem; margin-bottom: 1rem; background: #f1f5f9; border-radius: 6px; color: #0f172a; }
-.head h1 { margin: 0; font-size: 1.7rem; }
-.head p { margin: .2rem 0 0; color: #475569; }
+.stApp { background: #0b1220; }
+h1, h2, h3 { font-family: 'Source Serif 4', serif !important; color: #93c5fd; }
+.head { border-left: 6px solid #60a5fa; padding: .6rem 1rem; margin-bottom: 1rem; background: linear-gradient(120deg, #12315c, #0f3d47); border-radius: 8px; color: #f1f5f9; }
+.head h1 { margin: 0; font-size: 1.7rem; color: #f1f5f9; }
+.head p { margin: .2rem 0 0; color: #bfdbfe; }
 .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: .7rem; margin: .6rem 0 1rem; }
-.card { background: #f8fafc; border: 1px solid #cbd5e1; border-top: 4px solid #1d4e89; border-radius: 8px; padding: .7rem .9rem; color: #0f172a; }
-.card.cam { border-top-color: #e07a1f; }
-.card.xanh { border-top-color: #2a9d8f; }
-.card .l { font-size: .8rem; color: #475569; }
-.card .v { font-size: clamp(1.05rem, 2.1vw, 1.4rem); font-weight: 600; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; line-height: 1.25; }
-.card .s { font-size: .75rem; color: #64748b; margin-top: .15rem; }
-.tbl { max-height: 360px; overflow: auto; border: 1px solid #cbd5e1; border-radius: 8px; margin-bottom: .6rem; }
-.tbl table { border-collapse: collapse; width: 100%; font-size: .85rem; color: #0f172a; background: #fff; }
-.tbl th { position: sticky; top: 0; background: #1d4e89; color: #fff; padding: .45rem .7rem; text-align: right; white-space: nowrap; }
-.tbl td { padding: .35rem .7rem; text-align: right; border-bottom: 1px solid #e2e8f0; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.card { background: #111c30; border: 1px solid #24344f; border-top: 4px solid #60a5fa; border-radius: 8px; padding: .7rem .9rem; color: #e2e8f0; }
+.card.cam { border-top-color: #fbbf24; }
+.card.xanh { border-top-color: #2dd4bf; }
+.card .l { font-size: .8rem; color: #94a3b8; }
+.card .v { font-size: clamp(1.05rem, 2.1vw, 1.4rem); font-weight: 600; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; line-height: 1.25; color: #f1f5f9; }
+.card .s { font-size: .75rem; color: #94a3b8; margin-top: .15rem; }
+.tbl { max-height: 360px; overflow: auto; border: 1px solid #24344f; border-radius: 8px; margin-bottom: .6rem; }
+.tbl table { border-collapse: collapse; width: 100%; font-size: .85rem; color: #e2e8f0; background: #0f1a2e; }
+.tbl th { position: sticky; top: 0; background: #1e3a5f; color: #f1f5f9; padding: .45rem .7rem; text-align: right; white-space: nowrap; }
+.tbl td { padding: .35rem .7rem; text-align: right; border-bottom: 1px solid #1e2d47; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.tbl tr:nth-child(even) td { background: #111c30; }
 .tbl th:first-child, .tbl td:first-child { text-align: left; }
-.note { border-left: 4px solid #2a9d8f; background: #f0fdfa; color: #134e4a; padding: .6rem .9rem; border-radius: 6px; margin: .5rem 0; }
+.note { border-left: 4px solid #2dd4bf; background: #0d2b2b; color: #99f6e4; padding: .6rem .9rem; border-radius: 6px; margin: .5rem 0; }
 </style>
 <div class="head"><h1>📘 Sổ tiết kiệm</h1>
 <p>Tính lãi, so sánh gói gửi, lập kế hoạch gửi góp và đặt mục tiêu – dựa trên công thức tài chính chuẩn.</p></div>
@@ -129,6 +131,15 @@ def ve(d, a, b, ta, tb):
         tooltip=["Tháng", "Thành phần", alt.Tooltip("Triệu đồng:Q", format=",.2f")]).properties(height=300))
 
 
+def grafico(c, **_):
+    c = (c.configure(background="transparent")
+         .configure_axis(labelColor="#cbd5e1", titleColor="#cbd5e1", gridColor="#1e2d47",
+                         domainColor="#334155", tickColor="#334155")
+         .configure_legend(labelColor="#e2e8f0", titleColor="#e2e8f0")
+         .configure_view(stroke=None))
+    st.altair_chart(c, use_container_width=True, theme=None)
+
+
 FMT = {c: vnd for c in ["Lãi phát sinh", "Lãi tích lũy", "Tổng tài sản", "Tổng đã gửi", "Tiền lãi",
                         "Tổng lãi", "Tổng nhận", "Cần gửi mỗi tháng"]}
 
@@ -140,8 +151,8 @@ with st.expander("⚙️ Giả định chung (lạm phát, lãi suất khi rút 
     st.caption("Lãi suất tính theo năm, chia đều 12 tháng. Ngân hàng thực tế có thể tính theo số ngày "
                "(365), nên kết quả mang tính tham khảo, không phải lời khuyên đầu tư.")
 
-tab1, tab2, tab3, tab4, tab5 = st.tabs(
-    ["💰 Tính lãi", "⚖️ So sánh gói", "📅 Gửi góp hàng tháng", "🎯 Mục tiêu", "📚 Kiến thức"])
+tab1, tab2, tab_bank, tab3, tab4, tab5 = st.tabs(
+    ["💰 Tính lãi", "⚖️ So sánh gói", "🏦 So sánh ngân hàng", "📅 Gửi góp hàng tháng", "🎯 Mục tiêu", "📚 Kiến thức"])
 
 # =====================================================
 # TAB 1
@@ -184,7 +195,7 @@ with tab1:
             st.markdown(f"<div class='note'>Sau lạm phát, tiền của bạn tăng giá trị thực khoảng "
                         f"<b>{pct(thuc * 100)}/năm</b>.</div>", unsafe_allow_html=True)
 
-    st.altair_chart(ve(df.assign(Gốc=goc), "Gốc", "Lãi tích lũy", "Vốn gốc", "Tiền lãi"), use_container_width=True)
+    grafico(ve(df.assign(Gốc=goc), "Gốc", "Lãi tích lũy", "Vốn gốc", "Tiền lãi"), use_container_width=True)
 
     if thang > 2:
         with st.expander("⏱️ Nếu rút trước hạn thì sao?"):
@@ -223,7 +234,7 @@ with tab2:
         ("Gói cho nhiều tiền lãi nhất", kq.loc[kq["Tổng lãi"].idxmax(), "Gói"],
          vnd(kq["Tổng lãi"].max()) + " (kỳ hạn dài thì khóa tiền lâu hơn)", "cam"))
     bang(kq, {**FMT, "Lãi suất": pct, "Lợi suất hiệu dụng": pct})
-    st.altair_chart(alt.Chart(kq).mark_bar(color=XANH, cornerRadiusTopLeft=5, cornerRadiusTopRight=5).encode(
+    grafico(alt.Chart(kq).mark_bar(color=XANH, cornerRadiusTopLeft=5, cornerRadiusTopRight=5).encode(
         x=alt.X("Gói:N", sort=None, title=None, axis=alt.Axis(labelAngle=0)),
         y=alt.Y("Lợi suất hiệu dụng:Q", title="% / năm"),
         tooltip=["Gói", alt.Tooltip("Lợi suất hiệu dụng:Q", format=".2f")]).properties(height=240),
@@ -252,7 +263,7 @@ with tab3:
         the(("Tổng tiền bạn đã gửi", vnd(dg)), ("Tiền lãi sinh ra", vnd(sd - dg), "", "xanh"),
             ("Tổng tài sản", vnd(sd), "", "cam"),
             ("Sức mua thực", vnd(sd / (1 + lam_phat / 100) ** (n3 / 12)), f"quy về giá hôm nay, lạm phát {lam_phat:.1f}%"))
-        st.altair_chart(ve(d3, "Tổng đã gửi", "Tiền lãi", "Tiền bạn gửi", "Tiền lãi sinh ra"), use_container_width=True)
+        grafico(ve(d3, "Tổng đã gửi", "Tiền lãi", "Tiền bạn gửi", "Tiền lãi sinh ra"), use_container_width=True)
     with st.expander("📑 Bảng chi tiết"):
         bang(d3, FMT)
 
@@ -313,3 +324,58 @@ with tab5:
         "- Kiểm tra mức bảo hiểm tiền gửi và độ uy tín của tổ chức tín dụng trước khi gửi số tiền lớn.\n"
         "- Công cụ này chỉ mang tính tham khảo; hãy đối chiếu với biểu lãi suất và hợp đồng của ngân hàng."
     )
+
+# =====================================================
+# TAB SO SÁNH NGÂN HÀNG
+# =====================================================
+with tab_bank:
+    st.write("Bảng dưới là lãi suất **tiết kiệm thường tại quầy**, niêm yết ngày 1/10/2026 "
+             "(nguồn: Tạp chí Thị trường Tài chính Tiền tệ). Bạn có thể **sửa trực tiếp**, thêm ngân hàng "
+             "ở dòng cuối; ô trống nghĩa là chưa có số liệu. Đơn vị: %/năm.")
+    mau = pd.DataFrame([
+        ["Vietcombank", 3.5, 3.5, 5.9, 6.0],
+        ["BIDV", 3.5, 3.5, 5.9, 6.0],
+        ["VietinBank", 3.5, 3.5, 5.9, 6.0],
+        ["PVcomBank", None, None, 5.6, None],
+        ["GPBank", None, None, 5.55, None],
+        ["KienlongBank", None, None, 5.5, None],
+        ["Eximbank", None, None, 5.3, None],
+        ["HDBank", None, None, 5.3, None],
+        ["SeABank", None, None, 5.0, None],
+        ["SCB", None, None, 3.7, None],
+    ], columns=["Ngân hàng", "6 tháng", "9 tháng", "12 tháng", "24 tháng"])
+    ls_bang = st.data_editor(
+        mau, num_rows="dynamic", hide_index=True, use_container_width=True, key="bank_tbl",
+        column_config={c: st.column_config.NumberColumn(c, format="%.2f", min_value=0.0, max_value=20.0, step=0.05)
+                       for c in mau.columns[1:]})
+    b1, b2 = st.columns(2)
+    with b1:
+        goc_b = nhap_tien("Số tiền gửi", "bk_goc", 100_000_000)
+    with b2:
+        ky = st.selectbox("Kỳ hạn muốn so sánh", ["6 tháng", "9 tháng", "12 tháng", "24 tháng"], index=2)
+    thang_b = int(ky.split()[0])
+
+    d = ls_bang.dropna(subset=["Ngân hàng", ky]).copy()
+    d = d[d["Ngân hàng"].astype(str).str.strip() != ""]
+    if d.empty:
+        st.info("Chưa có ngân hàng nào có lãi suất cho kỳ hạn này. Hãy nhập thêm vào bảng ở trên.")
+    else:
+        d["Lãi suất"] = d[ky].astype(float)
+        d["Tổng lãi"] = goc_b * d["Lãi suất"] / 100 * thang_b / 12  # lãi đơn, lĩnh cuối kỳ
+        d["Tổng nhận"] = goc_b + d["Tổng lãi"]
+        d = d.sort_values("Tổng lãi", ascending=False).reset_index(drop=True)
+        d.insert(0, "Hạng", d.index + 1)
+        top, bot = d.iloc[0], d.iloc[-1]
+        the(("Lãi suất cao nhất", top["Ngân hàng"], f"{pct(top['Lãi suất'])}/năm", "xanh"),
+            ("Tiền lãi nhận được", vnd(top["Tổng lãi"]), f"sau {thang_b} tháng"),
+            ("Chênh lệch so với thấp nhất", vnd(top["Tổng lãi"] - bot["Tổng lãi"]),
+             f"so với {bot['Ngân hàng']} ({pct(bot['Lãi suất'])})", "cam"))
+        bang(d[["Hạng", "Ngân hàng", "Lãi suất", "Tổng lãi", "Tổng nhận"]], {**FMT, "Lãi suất": pct})
+        grafico(alt.Chart(d).mark_bar(color=XANH, cornerRadiusTopRight=4, cornerRadiusBottomRight=4).encode(
+            y=alt.Y("Ngân hàng:N", sort="-x", title=None), x=alt.X("Lãi suất:Q", title="% / năm"),
+            tooltip=["Ngân hàng", alt.Tooltip("Lãi suất:Q", format=".2f"),
+                     alt.Tooltip("Tổng lãi:Q", format=",.0f")]).properties(height=max(120, 34 * len(d))))
+    st.markdown("<div class='note'>Lưu ý: lãi suất đổi theo từng thời điểm và từng kênh (quầy, online). "
+                "Chứng chỉ tiền gửi thường có lãi cao hơn tiền gửi thường khoảng 1–3 điểm %, nhưng là sản phẩm khác "
+                "(điều kiện chuyển nhượng, rút trước hạn), hãy hỏi kỹ ngân hàng trước khi gửi.</div>",
+                unsafe_allow_html=True)
