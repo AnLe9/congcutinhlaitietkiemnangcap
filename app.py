@@ -5,11 +5,8 @@ import altair as alt
 import pandas as pd
 import streamlit as st
 
-st.image("IMG_7764.jpeg")
-
 st.set_page_config(page_title="Sổ tiết kiệm – Công cụ tính lãi", page_icon="📘", layout="wide")
 
-st.title("🌴🥥 Ứng dụng tính lãi gửi tiết kiệm của An Lê Trà Vinh 🥥🌴")
 XANH, CAM, LUC = "#60a5fa", "#fbbf24", "#2dd4bf"
 
 st.markdown(
@@ -140,7 +137,10 @@ def grafico(c, **_):
                          domainColor="#334155", tickColor="#334155")
          .configure_legend(labelColor="#e2e8f0", titleColor="#e2e8f0")
          .configure_view(stroke=None))
-    st.altair_chart(c, use_container_width=True, theme=None)
+    try:
+        st.altair_chart(c, width="stretch", theme=None)
+    except TypeError:  # Streamlit bản cũ
+        st.altair_chart(c, use_container_width=True, theme=None)
 
 
 FMT = {c: vnd for c in ["Lãi phát sinh", "Lãi tích lũy", "Tổng tài sản", "Tổng đã gửi", "Tiền lãi",
@@ -348,7 +348,7 @@ with tab_bank:
         ["SCB", None, None, 3.7, None],
     ], columns=["Ngân hàng", "6 tháng", "9 tháng", "12 tháng", "24 tháng"])
     ls_bang = st.data_editor(
-        mau, num_rows="dynamic", hide_index=True, use_container_width=True, key="bank_tbl",
+        mau, num_rows="dynamic", hide_index=True, key="bank_tbl",
         column_config={c: st.column_config.NumberColumn(c, format="%.2f", min_value=0.0, max_value=20.0, step=0.05)
                        for c in mau.columns[1:]})
     b1, b2 = st.columns(2)
